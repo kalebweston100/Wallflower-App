@@ -10,26 +10,14 @@
         android:id="@+id/mainLayout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="@color/teal_200"
+        android:background="@color/dark_blue"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/adLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_weight="3">
-
-        <Button
-            android:id="@+id/toSettings"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/white"
-            android:onClick="toSettings"
-            android:text="@string/to_settings"
-            android:textAllCaps="false"
-            android:textColor="@color/teal_200"
-            android:textSize="20sp"
-            tools:ignore="TextContrastCheck" />
 
         <TextView
             android:id="@+id/mainTitle"
@@ -38,7 +26,7 @@
             android:text="@string/main_title"
             android:textAlignment="center"
             android:textAllCaps="false"
-            android:textColor="@color/white"
+            android:textColor="@color/yellow"
             android:textSize="60sp"
             android:textStyle="bold|italic" />
 
@@ -50,18 +38,28 @@
             android:paddingBottom="20sp"
             android:text="@string/main_label"
             android:textAlignment="center"
-            android:textColor="@color/white"
+            android:textColor="@color/yellow"
             android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/codeInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/code_hint"
+            android:inputType="numberPassword"
+            android:textAlignment="center"
+            android:textColor="@color/yellow"
+            android:textSize="34sp" />
 
         <Button
             android:id="@+id/discoverButton"
             android:layout_width="300sp"
             android:layout_height="200sp"
-            android:background="@color/white"
+            android:background="@color/light_blue"
             android:onClick="discover"
             android:text="@string/discover_button"
             android:textAllCaps="false"
-            android:textColor="@color/teal_200"
+            android:textColor="@color/yellow"
             android:textSize="34sp"
             tools:ignore="TextContrastCheck" />
 
@@ -78,17 +76,5 @@
             android:visibility="gone" />
 
     </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/adLayout"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:background="@color/teal_200"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/mainLayout"
-        app:layout_constraintVertical_weight="1"></LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

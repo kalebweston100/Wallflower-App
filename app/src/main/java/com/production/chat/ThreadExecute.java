@@ -8,7 +8,7 @@ import java.util.concurrent.Executor;
 public class ThreadExecute implements Executor {
 
     //basic sub executor
-    protected final SubExecute executor;
+    protected final Executor executor;
     //store queued thread tasks
     protected final Queue<Runnable> tasks;
     //currently running thread
@@ -16,7 +16,13 @@ public class ThreadExecute implements Executor {
 
     //initialize active to null so that start next will be called on execute
     public ThreadExecute() {
-        executor = new SubExecute();
+        executor = new Executor() {
+            @Override
+            public void execute(Runnable runnable) {
+                Thread thread = new Thread(runnable);
+                thread.start();
+            }
+        };
         //capacity is probably unnecessary but best to prevent issues
         tasks = new ArrayBlockingQueue<>(100);
         active = null;

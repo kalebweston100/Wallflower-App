@@ -1,11 +1,24 @@
 package com.production.chat;
 
+import android.content.Intent;
+
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.MGF1ParameterSpec;
+import java.security.spec.X509EncodedKeySpec;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.OAEPParameterSpec;
+import javax.crypto.spec.PSource;
 
 //handles socket connection actions
 public class Connection {
@@ -14,13 +27,13 @@ public class Connection {
     private final ChatActivity chatActivity;
     //executor to keep send chats from writing to socket channel at the same time
     private final ThreadExecute threadExecute;
+    //key and encryption handler
+    private final KeyHandler keyHandler;
     //socket channel to peer
-    private SocketChannel socketChannel;
-    //thread that reads from socket channel and displays messages
-    private ReceiveThread receiveThread;
+    private SocketChannel socketChannel = null;
     //server socket channel to create socket channel connection
     //kept as global so it is ensured to be closed
-    private ServerSocketChannel serverSocketChannel;
+    private ServerSocketChannel serverSocketChannel = null;
 
     //store the chat activity and create the executor
     //socket channel, receive thread, and server socket channel are kept as null
@@ -28,9 +41,7 @@ public class Connection {
     public Connection(ChatActivity chatActivity) {
         this.chatActivity = chatActivity;
         threadExecute = new ThreadExecute();
-        socketChannel = null;
-        receiveThread = null;
-        serverSocketChannel = null;
+        keyHandler = new KeyHandler();
     }
 
     //start connection method for the
@@ -40,6 +51,9 @@ public class Connection {
             serverSocketChannel.bind(new InetSocketAddress(8000));
             socketChannel = serverSocketChannel.accept();
             serverSocketChannel.close();
+            if (keyHandler.needPeerPublic()) {
+                exchangeKeys();
+            }
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -51,6 +65,9 @@ public class Connection {
         try {
             InetSocketAddress socketAddress = new InetSocketAddress(InetAddress.getByName(ipAddress), 8000);
             socketChannel = SocketChannel.open(socketAddress);
+            if (keyHandler.needPeerPublic()) {
+                exchangeKeys();
+            }
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -59,27 +76,7 @@ public class Connection {
 
     //used to check if the socket channel is connected yet
     public boolean socketChannelSet() {
-        boolean set = false;
-        if (socketChannel != null) {
-            set = true;
-        }
-        return set;
-    }
-
-    //used in receive thread to get socket channel
-    public SocketChannel getSocketChannel() {
-        return socketChannel;
-    }
-
-    //used in receive thread to clear socket channel to show that it's not set
-    public void clearSocketChannel() {
-        try {
-            socketChannel.close();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        socketChannel = null;
+        return socketChannel != null;
     }
 
     //executes a runnable to write a message to the socket channel
@@ -89,7 +86,7 @@ public class Connection {
             @Override
             public void run() {
                 try {
-                    ByteBuffer buffer = StandardCharsets.UTF_8.encode(message.getText());
+                    ByteBuffer buffer = ByteBuffer.wrap(keyHandler.encryptMessage(message));
                     socketChannel.write(buffer);
                 }
                 catch (Exception e) {
@@ -99,19 +96,29 @@ public class Connection {
         });
     }
 
-    //runs the receive thread to receive messages from the peer
-    public void startReceiving() {
-        receiveThread = new ReceiveThread(this, chatActivity);
-        receiveThread.start();
+    private boolean readData(ByteBuffer byteBuffer) {
+        boolean success = false;
+        try {
+            int numRead = socketChannel.read(byteBuffer);
+            if (numRead == -1) {
+                Intent broadcast = new Intent();
+                broadcast.setAction(ChatReceiver.SOCKET_DISCONNECT);
+                chatActivity.sendBroadcast(broadcast);
+                clearSockets();
+            }
+            else {
+                byteBuffer.rewind();
+                byteBuffer.limit(numRead);
+                success = true;
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return success;
     }
 
-    //closes the socket channel and server socket channel if still open
-    //each in separate try block because both must always be closed
-    public void stopReceiving() {
-        if (receiveThread != null) {
-            receiveThread.stopRunning();
-            receiveThread = null;
-        }
+    public void clearSockets() {
         if (socketChannel != null) {
             try {
                 socketChannel.close();
@@ -124,11 +131,62 @@ public class Connection {
         if (serverSocketChannel != null) {
             try {
                 serverSocketChannel.close();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             serverSocketChannel = null;
         }
+    }
+
+    private void exchangeKeys() {
+        Thread receive = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(294);
+                    readData(byteBuffer);
+                    keyHandler.setPeerPublicEncrypt(byteBuffer);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        receive.start();
+
+        Thread send = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    ByteBuffer byteBuffer = ByteBuffer.wrap(keyHandler.getPublicEncrypt());
+                    socketChannel.write(byteBuffer);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        send.start();
+    }
+
+    public void receiveChats() {
+        Thread receive = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ByteBuffer byteBuffer = ByteBuffer.allocate(256);
+                while (readData(byteBuffer)) {
+                    Message message = keyHandler.decryptMessage(byteBuffer);
+                    chatActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            chatActivity.displayReceived(message);
+                        }
+                    });
+                    byteBuffer.clear();
+                }
+
+            }
+        });
+        receive.start();
     }
 }

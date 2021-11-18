@@ -10,6 +10,7 @@
         android:id="@+id/chatContent"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="@color/dark_blue"
         android:orientation="vertical"
         app:layout_constraintBottom_toTopOf="@+id/sendLayout"
         app:layout_constraintEnd_toEndOf="parent"
@@ -19,30 +20,19 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/light_blue"
             android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/blockButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@android:color/darker_gray"
-                android:onClick="blockAddress"
-                android:text="@string/chat_block"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                android:textSize="20sp" />
 
             <Button
                 android:id="@+id/chatBack"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="6"
-                android:background="@color/teal_200"
+                android:background="@color/light_blue"
                 android:onClick="chatBack"
                 android:text="@string/chat_back"
                 android:textAllCaps="false"
-                android:textColor="@color/white"
+                android:textColor="@color/yellow"
                 android:textSize="20sp" />
         </LinearLayout>
 
@@ -51,6 +41,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAlignment="center"
+            android:textColor="@color/yellow"
             android:textSize="20sp" />
 
         <ScrollView
@@ -71,6 +62,7 @@
         android:id="@+id/sendLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/light_blue"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -86,7 +78,7 @@
             android:gravity="start|top"
             android:hint="@string/message_hint"
             android:inputType="textMultiLine"
-            android:maxLength="500"
+            android:maxLength="64"
             android:textSize="20sp" />
 
         <Button
@@ -98,7 +90,7 @@
             android:onClick="sendChat"
             android:text="@string/chat_send"
             android:textAllCaps="false"
-            android:textColor="@color/white"
+            android:textColor="@color/yellow"
             android:textSize="20sp" />
     </LinearLayout>
 

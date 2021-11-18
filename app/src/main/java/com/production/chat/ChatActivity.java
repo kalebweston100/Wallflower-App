@@ -23,41 +23,38 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.util.Timer;
 import java.util.TimerTask;
 
-//activity that's started after p2p connection is established
+//Activity that is started by the notification intent when opened after a P2P connection is established
 public class ChatActivity extends AppCompatActivity {
 
-    //store owner, ip address, and device address from initial intent started from notification
-    //whether or not the device is the group owner of the p2p connection
+    //Owner and IP address are extras from the notification intent
+    //whether or not this device is the group owner of the Wifi Direct P2P connection
     private boolean owner;
-    //p2p ip address used for socket connection
+    //IP address of the group owner in the Wifi Direct P2P group
     private String ipAddress;
-    //device mac address of peer retrieved from response listener if this device is the client
-    private String deviceAddress;
 
-    //contains the socket channel and functionality for socket connection
+    //Contains the socket channel and functionality for socket connection
     private Connection connection;
-    //layout updated to display sent and received messages
+    //Layout is updated to display sent and received messages
     private LinearLayout messageLayout;
-    //receiver for broadcast of socket or p2p connection close
+    //Receiver of broadcast for end of P2P connection or loss of socket connection
     private ChatReceiver chatReceiver;
-    //intent filter for receiver
+    //Intent filter for receiver
     private IntentFilter intentFilter;
-    //timer for the pinging client socket connection attempts
+    //Timer to attempt to reconnect to the group owner if the socket connection is lost
     private Timer timer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-        //store the values from the start intent in their variables
+        //Store the extras from the starting intent
         owner = getIntent().getBooleanExtra(ConnectService.OWNER, false);
         ipAddress = getIntent().getStringExtra(ConnectService.IP_ADDRESS);
-        deviceAddress = getIntent().getStringExtra(ConnectService.DEVICE_ADDRESS);
-        //connection is initialized with a null socket channel
+        //Connection is initialized with a null socket channel
         connection = new Connection(this);
         setupLayout();
         setupReceiver();
-        //remove the notification that takes user to the chat activity to prevent it from being started again
+        //Remove the notification that takes user to the chat activity to prevent it from being started again
         NotificationManager notificationManager = getSystemService(NotificationManager.class);
         notificationManager.cancel(ConnectService.PEER_NOTIFICATION);
     }
@@ -74,25 +71,23 @@ public class ChatActivity extends AppCompatActivity {
         unregisterReceiver(chatReceiver);
     }
 
-    //the socket connection is closed and cleaned up on stop
-    //so set it up again on start every time
+    //The socket connection is restarted every time the app is opened
     @Override
     protected void onStart() {
         super.onStart();
         setupConnection();
     }
 
-    //if the app is closed then cancel the timer and stop receiving cleans up socket resources
-    //setup connection reconnects the resources stopped by on stop when the app is restarted
+    //When the app is closed cancel the timer and clear the socket connection
     @Override
     protected void onStop() {
         super.onStop();
         timer.cancel();
-        connection.stopReceiving();
+        connection.clearSockets();
     }
 
-    //on destroy of the chat activity, stop the peer to peer connection by stopping the service
-    //chat activity is destroyed by the done chatting button or the receiver on a connection disconnect
+    //Stop the P2P connection by stopping the service
+    //Chat Activity is destroyed by the done button or in the receiver on a connection disconnect
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -100,7 +95,7 @@ public class ChatActivity extends AppCompatActivity {
         stopService(service);
     }
 
-    //sets up the layout to scroll to the bottom on a message sent or received
+    //Sets up the layout to scroll to the bottom when a message is sent or received
     private void setupLayout() {
         messageLayout = findViewById(R.id.messageLayout);
         messageLayout.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
@@ -112,8 +107,8 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
-    //receiver is registered with device changed action to detect peer to peer disconnect
-    //and socket disconnect to detect socket disconnect broadcast from receive thread
+    //Receiver is registered with device changed action to detect P2P disconnect
+    //and socket disconnect to detect socket disconnect broadcast from Connection receive thread
     private void setupReceiver() {
         chatReceiver = new ChatReceiver(this);
         intentFilter = new IntentFilter();
@@ -121,30 +116,30 @@ public class ChatActivity extends AppCompatActivity {
         intentFilter.addAction(ChatReceiver.SOCKET_DISCONNECT);
     }
 
-    //sets up the socket connection
-    //called from on start and the broadcast receiver
+    //Sets up the socket connection
+    //Called from onStart and the broadcast receiver
     public void setupConnection() {
-        //initialize the timer every time the method is called to prevent an error with scheduling a canceled timer
+        //Initialize the timer every time the method is called to prevent an error with scheduling a canceled timer
         timer = new Timer();
-        //used to access the chat activity from within the inner runnable
+        //Used to access the chat activity from within the inner runnable
         ChatActivity self = this;
-        //notifies the user of when the other user has stopped the app
+        //Notifies the user of when the other user has stopped the app
         TextView chatNotify = findViewById(R.id.chatNotify);
         chatNotify.setText(getString(R.string.notify_waiting_peer));
-        //if the group owner then start a socket channel to receive the client connection from the peer
+        //If the group owner then start a socket channel to receive the client connection from the peer
         if (owner) {
-            //thread because server socket channel is blocking and not necessary to run multiple times
+            //Only a single thread because server socket channel is blocking and not necessary to run multiple times
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    //start connection override for server socket
+                    //Start connection override for server socket
                     connection.startConnection();
-                    //the socket channel is set if not null
+                    //The socket channel is set if not null and is reset to null when not connected
                     //always reset to null when not connected
                     if (connection.socketChannelSet()) {
-                        //starts the receive thread in connection
-                        connection.startReceiving();
-                        //reset the textview so the user knows they can send messages
+                        //Starts the receive thread in Connection
+                        connection.receiveChats();
+                        //Resets the textview so the user knows they can send messages
                         self.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -156,22 +151,22 @@ public class ChatActivity extends AppCompatActivity {
             });
             thread.start();
         }
-        //if not owner then start a polling connection attempt to the server socket
+        //If not owner then start a polling connection attempt to the server socket
         //so it connects when the other user starts the app and opens the server socket
         else {
             timer.schedule(new TimerTask() {
                 //attempt the connection every 500 milliseconds
                 @Override
                 public void run() {
-                    //start connection override for a client socket connect
+                    //Start connection override for a client socket connect
                     connection.startConnection(ipAddress);
-                    //if the connection attempt is successful then socket channel won't be null
+                    //If the connection attempt is successful then socket channel won't be null
                     if (connection.socketChannelSet()) {
-                        //start the receive thread
-                        connection.startReceiving();
-                        //cancel the timer to stop the polling
+                        //Start the receive thread
+                        connection.receiveChats();
+                        //Cancel the timer to stop the polling
                         timer.cancel();
-                        //clear the message that they're waiting on the peer
+                        //Clear the message that is shown when waiting on peer
                         self.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -185,80 +180,30 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
-    //used to block the address if the connection is a client and the mac was retrieved from the response listener
-    public void blockAddress(View view) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        if (deviceAddress != null) {
-            builder.setTitle(getString(R.string.alert_block_title));
-            builder.setMessage(getString(R.string.alert_block_content));
-            builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    addBlocked(deviceAddress);
-                    enableSafeMode();
-                    endChat();
-                }
-            });
-        }
-        else {
-            builder.setTitle(getString(R.string.alert_no_block_title));
-            builder.setMessage(getString(R.string.alert_no_block_content));
-            builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    enableSafeMode();
-                    endChat();
-                }
-            });
-        }
-        builder.setNegativeButton(android.R.string.no, null);
-        builder.show();
-    }
-
-    //adds the blocked mac address to the shared preferences file
-    private void addBlocked(String blockedAddress) {
-        SharedPreferences sharedPreferences = getSharedPreferences(ConnectService.BLOCKED_MACS, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        //key is used to search for the mac address so the value isn't relevant
-        editor.putString(blockedAddress, "BLOCKED");
-        editor.apply();
-    }
-
-    //enables safe mode in the shared preferences setting file
-    //it is disabled again on main activity start or from settings
-    private void enableSafeMode() {
-        SharedPreferences sharedPreferences = getSharedPreferences(ConnectService.SETTINGS, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean(ConnectService.SAFE_MODE, true);
-        editor.apply();
-    }
-
-    //calls the end chat method from the done chatting button
+    //Ends the connection when the Done button is pressed in Chat Activity
     public void chatBack(View view) {
-        endChat();
-    }
-
-    //ends the chat activity, stops service in on destroy, and notifies the peer that the chat was ended
-    private void endChat() {
         Intent intent = new Intent(this, MainActivity.class);
         intent.setAction(ChatReceiver.ENDED_CHAT);
         startActivity(intent);
         this.finish();
     }
 
-    //sends a message to the peer over the socket channel
+    //Sends a message to the peer over the socket channel
     public void sendChat(View view) {
         EditText editText = findViewById(R.id.messageText);
         String text = editText.getText().toString();
+        //If connected and the message isn't blank
         if (connection.socketChannelSet() && !text.equals("")) {
             Message message = new Message(text);
+            //Clears the text from previous message
             editText.setText(null);
+            //Sends message with thread in Connection
             connection.sendChat(message);
             displaySent(message);
         }
     }
 
-    //display the sent message in the message layout
+    //Displays the sent message in the message layout
     private void displaySent(Message message) {
         TextView textView = new TextView(this);
         textView.setText(message.getText());
@@ -266,8 +211,7 @@ public class ChatActivity extends AppCompatActivity {
         messageLayout.addView(textView);
     }
 
-    //display received messages
-    //called from the receive thread with run on ui thread method
+    //Called with runOnUiThread from receive thread in Connection to display received messages
     public void displayReceived(Message message) {
         TextView textView = new TextView(this);
         textView.setText(message.getText());
@@ -275,7 +219,7 @@ public class ChatActivity extends AppCompatActivity {
         messageLayout.addView(textView);
     }
 
-    //styling for send messages to be on the right of the screen
+    //Styling for sent messages to be on the right of the screen
     private void styleSent(TextView textView) {
         styleTextView(textView);
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
@@ -284,7 +228,7 @@ public class ChatActivity extends AppCompatActivity {
         textView.setLayoutParams(layoutParams);
     }
 
-    //styling for received messages to be on the left of the screen
+    //Styling for received messages to be on the left of the screen
     private void styleReceived(TextView textView) {
         styleTextView(textView);
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
@@ -293,10 +237,10 @@ public class ChatActivity extends AppCompatActivity {
         textView.setLayoutParams(layoutParams);
     }
 
-    //styling for the message textview that is the same for both sent and received messages
+    //Styling for the message textview that is the same for both sent and received messages
     private void styleTextView(TextView textView) {
-        textView.setBackgroundColor(getColor(R.color.teal_200));
-        textView.setTextColor(Color.WHITE);
+        textView.setBackgroundColor(getColor(R.color.light_blue));
+        textView.setTextColor(getResources().getColor(R.color.yellow));
         textView.setSingleLine(false);
         textView.setMaxWidth(500);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);

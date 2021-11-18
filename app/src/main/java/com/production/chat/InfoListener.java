@@ -8,15 +8,9 @@ public class InfoListener implements WifiP2pManager.ConnectionInfoListener {
 
     //used to send notification in service by calling method
     private final ConnectService connectService;
-    private String deviceAddress;
 
     public InfoListener(ConnectService connectService) {
         this.connectService = connectService;
-        deviceAddress = null;
-    }
-
-    public void setDeviceAddress(String deviceAddress) {
-        this.deviceAddress = deviceAddress;
     }
 
     //when connection info is received, check if it is a reachable peer using the app
@@ -27,7 +21,7 @@ public class InfoListener implements WifiP2pManager.ConnectionInfoListener {
             boolean owner = info.isGroupOwner;
             String ipAddress = info.groupOwnerAddress.getHostAddress();
             //pass the necessary data for the chat activity to the method and send the notification
-            connectService.sendNotification(owner, ipAddress, deviceAddress);
+            connectService.sendNotification(owner, ipAddress);
         }
     }
 }
