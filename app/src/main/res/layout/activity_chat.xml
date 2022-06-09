@@ -10,7 +10,7 @@
         android:id="@+id/chatContent"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="@color/dark_blue"
+        android:background="@color/light_blue"
         android:orientation="vertical"
         app:layout_constraintBottom_toTopOf="@+id/sendLayout"
         app:layout_constraintEnd_toEndOf="parent"
@@ -21,7 +21,7 @@
             android:id="@+id/chatBack"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/light_blue"
+            android:background="@color/dark_blue"
             android:fontFamily="monospace"
             android:onClick="chatBack"
             android:text="@string/chat_back"
@@ -41,7 +41,8 @@
         <ScrollView
             android:id="@+id/messageScroll"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            tools:ignore="SpeakableTextPresentCheck">
 
             <LinearLayout
                 android:id="@+id/messageLayout"
@@ -56,7 +57,7 @@
         android:id="@+id/sendLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/light_blue"
+        android:background="@color/dark_blue"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -76,7 +77,8 @@
             android:maxLength="64"
             android:textColor="@color/yellow"
             android:textColorHint="@color/yellow"
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            android:importantForAutofill="no" />
 
         <Button
             android:id="@+id/sendButton"
@@ -88,7 +90,7 @@
             android:onClick="sendChat"
             android:text="@string/chat_send"
             android:textAllCaps="false"
-            android:textColor="@color/light_blue"
+            android:textColor="@color/dark_blue"
             android:textSize="20sp" />
     </LinearLayout>
 

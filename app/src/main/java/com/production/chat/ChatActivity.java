@@ -243,7 +243,7 @@ public class ChatActivity extends AppCompatActivity {
 
     //Styling for the message textview that is the same for both sent and received messages
     private void styleTextView(TextView textView) {
-        textView.setBackgroundColor(getColor(R.color.light_blue));
+        textView.setBackgroundColor(getColor(R.color.dark_blue));
         textView.setTypeface(Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL));
         textView.setTextColor(getResources().getColor(R.color.yellow));
         textView.setSingleLine(false);

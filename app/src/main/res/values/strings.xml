@@ -27,6 +27,6 @@
     <string name="broadcast_off">You\'ll be connected to another user who enters the same code</string>
     <string name="info_mark">\?</string>
     <string name="switch_info">When the switch is deactivated the app will only connect you to another user who enters the same code, and when it is activated the app will connect you to any other user with it also activated</string>
-    <string name="code_info">The purpose of the code is to only connect you with another user who you have predetermined a code to use with</string>
+    <string name="code_info">The purpose of the code is to only connect you to another user who you have predetermined a code to use with</string>
     <string name="info_okay">Okay</string>
 </resources>

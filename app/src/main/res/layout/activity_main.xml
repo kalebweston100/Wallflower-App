@@ -79,12 +79,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:backgroundTint="@color/light_blue"
+                android:backgroundTint="@color/yellow"
                 android:fontFamily="monospace"
                 android:onClick="showSwitchInfo"
                 android:text="@string/info_mark"
-                android:textColor="@color/yellow"
-                android:textSize="20sp" />
+                android:textColor="@color/dark_blue"
+                android:textSize="20sp"
+                tools:ignore="DuplicateSpeakableTextCheck" />
         </LinearLayout>
 
         <LinearLayout
@@ -106,18 +107,19 @@
                 android:textAlignment="textStart"
                 android:textColor="@color/yellow"
                 android:textColorHint="@color/yellow"
-                android:textSize="20sp" />
+                android:textSize="20sp"
+                android:importantForAutofill="no" />
 
             <Button
                 android:id="@+id/codeInfo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:backgroundTint="@color/light_blue"
+                android:backgroundTint="@color/yellow"
                 android:fontFamily="monospace"
                 android:onClick="showCodeInfo"
                 android:text="@string/info_mark"
-                android:textColor="@color/yellow"
+                android:textColor="@color/dark_blue"
                 android:textSize="20sp" />
         </LinearLayout>
 
@@ -125,26 +127,26 @@
             android:id="@+id/discoverButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/light_blue"
+            android:background="@color/yellow"
             android:fontFamily="monospace"
             android:onClick="discover"
             android:padding="20sp"
             android:text="@string/discover_button"
             android:textAllCaps="false"
-            android:textColor="@color/yellow"
+            android:textColor="@color/dark_blue"
             android:textSize="34sp" />
 
         <Button
             android:id="@+id/cancelButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/light_blue"
+            android:background="@color/yellow"
             android:fontFamily="monospace"
             android:onClick="cancelDiscover"
-            android:padding="10sp"
+            android:padding="20sp"
             android:text="@string/cancel_button"
             android:textAllCaps="false"
-            android:textColor="@color/yellow"
+            android:textColor="@color/dark_blue"
             android:textSize="34sp"
             android:visibility="gone" />
 
