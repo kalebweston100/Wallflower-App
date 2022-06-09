@@ -8,7 +8,7 @@
 
     <LinearLayout
         android:id="@+id/mainLayout"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@color/dark_blue"
         android:gravity="center_horizontal"
@@ -16,8 +16,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_weight="3">
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
             android:id="@+id/mainTitle"
@@ -41,14 +40,26 @@
             android:textColor="@color/yellow"
             android:textSize="20sp" />
 
+        <Switch
+            android:id="@+id/broadcastSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="toggleBroadcast"
+            android:text="@string/broadcast_off"
+            android:textAlignment="center"
+            android:textColor="@color/yellow"
+            android:textSize="24sp" />
+
         <EditText
             android:id="@+id/codeInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/code_hint"
             android:inputType="numberPassword"
+            android:maxLength="6"
             android:textAlignment="center"
             android:textColor="@color/yellow"
+            android:textColorHint="@color/yellow"
             android:textSize="34sp" />
 
         <Button
@@ -67,11 +78,11 @@
             android:id="@+id/cancelButton"
             android:layout_width="300sp"
             android:layout_height="200sp"
-            android:background="@color/white"
+            android:background="@color/light_blue"
             android:onClick="cancelDiscover"
             android:text="@string/cancel_button"
             android:textAllCaps="false"
-            android:textColor="@color/teal_200"
+            android:textColor="@color/yellow"
             android:textSize="34sp"
             android:visibility="gone" />
 

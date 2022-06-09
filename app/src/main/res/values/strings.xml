@@ -8,6 +8,7 @@
     <string name="message_hint">Message</string>
     <string name="chat_send">Send</string>
     <string name="cancel_button">Stop</string>
+    <string name="notify_pin_length">Please enter a 6 digit number</string>
     <string name="notify_disabled">Make sure WiFi Direct is enabled to use the app</string>
     <string name="main_label">We\'ll look for someone else using the app in your area and get you connected</string>
     <string name="notify_chat_end">The other user ended the connection</string>
@@ -22,4 +23,6 @@
     <string name="user_agree_settings">Wallflower prohibits any kind of hate-speech, harassment, or other activities violating Google Play\'s Policies</string>
     <string name="user_agree_accept">Accept</string>
     <string name="user_agree_decline">Decline</string>
+    <string name="broadcast_on">You\'ll be connected to someone else using the app</string>
+    <string name="broadcast_off">You\'ll be connected to someone who entered a matching pin</string>
 </resources>

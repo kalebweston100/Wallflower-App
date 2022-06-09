@@ -40,7 +40,7 @@ public class KeyHandler {
         byte[] encrypted = null;
         try {
             Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPPadding");
-            // To use SHA-256 for both digests
+            //To use SHA-256 for both digests
             cipher.init(Cipher.ENCRYPT_MODE, peerPublicEncrypt, new OAEPParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256, PSource.PSpecified.DEFAULT));
             encrypted = cipher.doFinal(StandardCharsets.UTF_8.encode(message.getText()).array());
         }
@@ -54,7 +54,7 @@ public class KeyHandler {
         String decrypted = null;
         try {
             Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPPadding");
-            // To use SHA-256 for both digests
+            //To use SHA-256 for both digests
             cipher.init(Cipher.DECRYPT_MODE, privateDecrypt, new OAEPParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256, PSource.PSpecified.DEFAULT));
             decrypted = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(cipher.doFinal(byteBuffer.array()))).toString();
         }

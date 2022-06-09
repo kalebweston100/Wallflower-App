@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.wifi.p2p.WifiP2pConfig;
+import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pUpnpServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pUpnpServiceRequest;
@@ -33,8 +35,6 @@ public class ConnectService extends Service {
     //global so that they can be removed instead of clearing
     private WifiP2pUpnpServiceRequest serviceRequest;
     private WifiP2pUpnpServiceInfo serviceInfo;
-    //make info listener global so device address can be set in response listener
-    private InfoListener infoListener;
 
     //static int for consistency when chat activity cancels peer notification
     public static int SERVICE_NOTIFICATION = 1;
@@ -46,6 +46,8 @@ public class ConnectService extends Service {
     public static String IP_ADDRESS = "IP_ADDRESS";
     //intent extra for code from main activity
     public static String SECRET_CODE = "SECRET_CODE";
+    //secret code string value to broadcast instead of using pin
+    public static String CODE_BROADCAST = "BROADCAST";
 
     //initialize service request and info in on create so it has time to be added before discovery in on start command
     @Override
@@ -54,23 +56,18 @@ public class ConnectService extends Service {
         //initialize peer to peer resources
         manager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         channel = manager.initialize(this, getMainLooper(), null);
-        infoListener = new InfoListener(this);
-        //add service request earliest because it must be set before service discovery in on start command
-        //addServiceRequest();
         //get notification manager and create a channel to send notifications over
         notificationManager = getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannel(new NotificationChannel(getPackageName(), getPackageName(), NotificationManager.IMPORTANCE_HIGH));
         //setup the receiver and register with intent filter
         setupReceiver();
-        //create the service info so it can be removed in on destroy and won't receive a null exception
-        //createServiceInfo();
-        //add service info last because needs to have notifications and receiver setup in case it is discovered by a peer
     }
 
     //sets up the receiver to send a notification when the device is connected to a peer
     //requests connection info on connection change
     private void setupReceiver() {
-        serviceReceiver = new ServiceReceiver(manager, channel, infoListener);
+        //serviceReceiver = new ServiceReceiver(manager, channel, infoListener);
+        serviceReceiver = new ServiceReceiver(this);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         registerReceiver(serviceReceiver, intentFilter);
@@ -78,23 +75,32 @@ public class ConnectService extends Service {
 
     //adds the service request for the app and sets the response listener to start connection when a peer is discovered
     private void addServiceRequest(String secretCode) throws SecurityException {
-        String secretCodeService = "urn:schemas-upnp-org:service:Wallflower:" + secretCode;
-        serviceRequest = WifiP2pUpnpServiceRequest.newInstance(secretCodeService);
+        String serviceName = "Wallflower-" + secretCode;
+        String uuid = "uuid:" + UUID.nameUUIDFromBytes(serviceName.getBytes()).toString();
+        serviceRequest = WifiP2pUpnpServiceRequest.newInstance(uuid);
         manager.addServiceRequest(channel, serviceRequest, null);
-        manager.setUpnpServiceResponseListener(channel, new ResponseListener(manager, channel));
+        manager.setUpnpServiceResponseListener(channel, new WifiP2pManager.UpnpServiceResponseListener() {
+            @Override
+            public void onUpnpServiceAvailable(List<String> list, WifiP2pDevice wifiP2pDevice) throws SecurityException {
+                String deviceAddress = wifiP2pDevice.deviceAddress;
+                WifiP2pConfig config = new WifiP2pConfig();
+                config.deviceAddress = deviceAddress;
+                manager.connect(channel, config, null);
+            }
+        });
         manager.discoverServices(channel, null);
     }
 
     //adds the info to be discovered by a peer
     //security exception is never thrown because location permissions are checked before service is started
     private void createServiceInfo(String secretCode) throws SecurityException {
-        String secretCodeService = "urn:schemas-upnp-org:service:Wallflower:" + secretCode;
-        String serviceName = "Wallflower";
+        String serviceName = "Wallflower-" + secretCode;
         String uuid = UUID.nameUUIDFromBytes(serviceName.getBytes()).toString();
-        String device = "urn:schemas-upnp-org:device:Device:1";
+        String deviceSchema = "urn:schemas-upnp-org:device:Device:1";
+        String serviceSchema = "urn:schemas-upnp-org:service:Wallflower:1";
         List<String> services = new ArrayList<>();
-        services.add(secretCodeService);
-        serviceInfo = WifiP2pUpnpServiceInfo.newInstance(uuid, device, services);
+        services.add(serviceSchema);
+        serviceInfo = WifiP2pUpnpServiceInfo.newInstance(uuid, deviceSchema, services);
         manager.addLocalService(channel, serviceInfo, null);
     }
 

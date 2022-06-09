@@ -1,6 +1,7 @@
 package com.production.chat;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,18 +14,17 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
-
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
-import com.google.android.gms.ads.AdView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,11 +33,12 @@ public class MainActivity extends AppCompatActivity {
     //name of user agreement boolean in settings file
     public static String USER_AGREED = "USER_AGREED";
 
-    private BroadcastReceiver receiver;
+    private WifiReceiver receiver;
     private IntentFilter intentFilter;
     private ActivityResultLauncher<String> permissionLauncher;
     private SharedPreferences.Editor editor;
-    private boolean user_agreed;
+    private boolean userAgreed;
+    private boolean useBroadcast = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         SharedPreferences sharedPreferences = getSharedPreferences(INFO, MODE_PRIVATE);
         editor = sharedPreferences.edit();
-        user_agreed = sharedPreferences.getBoolean(USER_AGREED, false);
+        userAgreed = sharedPreferences.getBoolean(USER_AGREED, false);
         //sets up broadcast receiver and filter
         setupReceiver();
         //has different ui responsibilities based on custom intent action
@@ -119,6 +120,21 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public void toggleBroadcast(View view) {
+        Switch broadcastSwitch = findViewById(R.id.broadcastSwitch);
+        EditText codeInput = findViewById(R.id.codeInput);
+        if (broadcastSwitch.isChecked()) {
+            broadcastSwitch.setText(R.string.broadcast_on);
+            codeInput.setVisibility(View.GONE);
+            useBroadcast = true;
+        }
+        else {
+            broadcastSwitch.setText(R.string.broadcast_off);
+            codeInput.setVisibility(View.VISIBLE);
+            useBroadcast = false;
+        }
+    }
+
     //method to stop the service
     //called on the press of the cancel button which is hidden by default
     public void cancelDiscover(View view) {
@@ -147,43 +163,62 @@ public class MainActivity extends AppCompatActivity {
         mainNotify.setText(getString(R.string.notify_searching));
     }
 
+    private void showUserPolicy() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.user_agree_title);
+        builder.setMessage(R.string.user_agree_content);
+        builder.setPositiveButton(R.string.user_agree_accept, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                userAgreed = true;
+                editor.putBoolean(USER_AGREED, true);
+                editor.apply();
+            }
+        });
+        builder.setNegativeButton(R.string.user_agree_decline, null);
+        builder.show();
+    }
+
+    private void startLooking() {
+        boolean validCode = true;
+        String secretCode;
+
+        if (useBroadcast) {
+            secretCode = ConnectService.CODE_BROADCAST;
+        }
+        else {
+            EditText codeInput = findViewById(R.id.codeInput);
+            secretCode = codeInput.getText().toString();
+
+            if (secretCode.length() != 6) {
+                TextView mainNotify = findViewById(R.id.mainNotify);
+                mainNotify.setText(getString(R.string.notify_pin_length));
+                validCode = false;
+            }
+        }
+
+        if (validCode) {
+            Intent service = new Intent(this, ConnectService.class);
+            service.putExtra(ConnectService.SECRET_CODE, secretCode);
+            startForegroundService(service);
+            showCancel();
+        }
+    }
+
     //requests permissions before starting the foreground service
     //displays message and shows cancel button to stop service
     public void discover(View view) {
 
-        if (user_agreed) {
+        if (userAgreed) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                EditText codeInput = findViewById(R.id.codeInput);
-                String secret_code = codeInput.getText().toString();
-                //minimum secret code length?
-                if (secret_code.length() > 0) {
-                    Intent service = new Intent(this, ConnectService.class);
-                    service.putExtra(ConnectService.SECRET_CODE, secret_code);
-                    startForegroundService(service);
-                    showCancel();
-                }
-                else {
-                    //notify to enter code
-                }
+                startLooking();
             }
             else {
                 permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
             }
         }
         else {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.user_agree_title);
-            builder.setMessage(R.string.user_agree_content);
-            builder.setPositiveButton(R.string.user_agree_accept, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    user_agreed = true;
-                    editor.putBoolean(USER_AGREED, true);
-                    editor.apply();
-                }
-            });
-            builder.setNegativeButton(R.string.user_agree_decline, null);
-            builder.show();
+            showUserPolicy();
         }
     }
 

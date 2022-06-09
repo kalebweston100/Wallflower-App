@@ -51,9 +51,6 @@ public class Connection {
             serverSocketChannel.bind(new InetSocketAddress(8000));
             socketChannel = serverSocketChannel.accept();
             serverSocketChannel.close();
-            if (keyHandler.needPeerPublic()) {
-                exchangeKeys();
-            }
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -65,9 +62,6 @@ public class Connection {
         try {
             InetSocketAddress socketAddress = new InetSocketAddress(InetAddress.getByName(ipAddress), 8000);
             socketChannel = SocketChannel.open(socketAddress);
-            if (keyHandler.needPeerPublic()) {
-                exchangeKeys();
-            }
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -138,23 +132,23 @@ public class Connection {
         }
     }
 
-    private void exchangeKeys() {
-        Thread receive = new Thread(new Runnable() {
+    public void exchangeKeys() {
+        Thread receiveKey = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     ByteBuffer byteBuffer = ByteBuffer.allocate(294);
                     readData(byteBuffer);
                     keyHandler.setPeerPublicEncrypt(byteBuffer);
+                    receiveChats();
                 }
                 catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
-        receive.start();
 
-        Thread send = new Thread(new Runnable() {
+        Thread sendKey = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -166,11 +160,18 @@ public class Connection {
                 }
             }
         });
-        send.start();
+
+        if (keyHandler.needPeerPublic()) {
+            receiveKey.start();
+            sendKey.start();
+        }
+        else {
+            receiveChats();
+        }
     }
 
-    public void receiveChats() {
-        Thread receive = new Thread(new Runnable() {
+    private void receiveChats() {
+        Thread receiveChats = new Thread(new Runnable() {
             @Override
             public void run() {
                 ByteBuffer byteBuffer = ByteBuffer.allocate(256);
@@ -187,6 +188,6 @@ public class Connection {
 
             }
         });
-        receive.start();
+        receiveChats.start();
     }
 }

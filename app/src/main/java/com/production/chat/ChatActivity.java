@@ -138,7 +138,8 @@ public class ChatActivity extends AppCompatActivity {
                     //always reset to null when not connected
                     if (connection.socketChannelSet()) {
                         //Starts the receive thread in Connection
-                        connection.receiveChats();
+                        //connection.receiveChats();
+                        connection.exchangeKeys();
                         //Resets the textview so the user knows they can send messages
                         self.runOnUiThread(new Runnable() {
                             @Override
@@ -163,7 +164,8 @@ public class ChatActivity extends AppCompatActivity {
                     //If the connection attempt is successful then socket channel won't be null
                     if (connection.socketChannelSet()) {
                         //Start the receive thread
-                        connection.receiveChats();
+                        //connection.receiveChats();
+                        connection.exchangeKeys();
                         //Cancel the timer to stop the polling
                         timer.cancel();
                         //Clear the message that is shown when waiting on peer
