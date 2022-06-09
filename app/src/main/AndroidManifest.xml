@@ -25,6 +25,7 @@
             tools:ignore="LockedOrientationActivity" />
         <activity android:name=".MainActivity"
                   android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize"
                   android:screenOrientation="portrait"
                   tools:ignore="LockedOrientationActivity">
             <intent-filter>

@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.util.TypedValue;
@@ -20,6 +21,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.lang.reflect.Type;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -242,6 +244,7 @@ public class ChatActivity extends AppCompatActivity {
     //Styling for the message textview that is the same for both sent and received messages
     private void styleTextView(TextView textView) {
         textView.setBackgroundColor(getColor(R.color.light_blue));
+        textView.setTypeface(Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL));
         textView.setTextColor(getResources().getColor(R.color.yellow));
         textView.setSingleLine(false);
         textView.setMaxWidth(500);

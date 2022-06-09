@@ -17,29 +17,23 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <LinearLayout
+        <Button
+            android:id="@+id/chatBack"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/light_blue"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/chatBack"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="6"
-                android:background="@color/light_blue"
-                android:onClick="chatBack"
-                android:text="@string/chat_back"
-                android:textAllCaps="false"
-                android:textColor="@color/yellow"
-                android:textSize="20sp" />
-        </LinearLayout>
+            android:fontFamily="monospace"
+            android:onClick="chatBack"
+            android:text="@string/chat_back"
+            android:textAllCaps="false"
+            android:textColor="@color/yellow"
+            android:textSize="20sp" />
 
         <TextView
             android:id="@+id/chatNotify"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:fontFamily="monospace"
             android:textAlignment="center"
             android:textColor="@color/yellow"
             android:textSize="20sp" />
@@ -75,6 +69,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
+            android:fontFamily="monospace"
             android:gravity="start|top"
             android:hint="@string/message_hint"
             android:inputType="textMultiLine"
@@ -88,11 +83,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="3"
-            android:background="@color/dark_blue"
+            android:background="@color/yellow"
+            android:fontFamily="monospace"
             android:onClick="sendChat"
             android:text="@string/chat_send"
             android:textAllCaps="false"
-            android:textColor="@color/yellow"
+            android:textColor="@color/light_blue"
             android:textSize="20sp" />
     </LinearLayout>
 

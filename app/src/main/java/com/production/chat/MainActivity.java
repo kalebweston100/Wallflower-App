@@ -122,15 +122,15 @@ public class MainActivity extends AppCompatActivity {
 
     public void toggleBroadcast(View view) {
         Switch broadcastSwitch = findViewById(R.id.broadcastSwitch);
-        EditText codeInput = findViewById(R.id.codeInput);
+        LinearLayout codeLayout = findViewById(R.id.codeLayout);
         if (broadcastSwitch.isChecked()) {
             broadcastSwitch.setText(R.string.broadcast_on);
-            codeInput.setVisibility(View.GONE);
+            codeLayout.setVisibility(View.INVISIBLE);
             useBroadcast = true;
         }
         else {
             broadcastSwitch.setText(R.string.broadcast_off);
-            codeInput.setVisibility(View.VISIBLE);
+            codeLayout.setVisibility(View.VISIBLE);
             useBroadcast = false;
         }
     }
@@ -220,6 +220,20 @@ public class MainActivity extends AppCompatActivity {
         else {
             showUserPolicy();
         }
+    }
+
+    public void showSwitchInfo(View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.switch_info);
+        builder.setNeutralButton(R.string.info_okay, null);
+        builder.show();
+    }
+
+    public void showCodeInfo(View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.code_info);
+        builder.setNeutralButton(R.string.info_okay, null);
+        builder.show();
     }
 
     //called from wifi receiver if wifi direct is not available

@@ -7,13 +7,12 @@
     tools:context=".MainActivity">
 
     <LinearLayout
-        android:id="@+id/mainLayout"
-        android:layout_width="0dp"
+        android:id="@+id/titleLayout"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="@color/dark_blue"
-        android:gravity="center_horizontal"
         android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/mainLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -22,64 +21,127 @@
             android:id="@+id/mainTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:fontFamily="monospace"
             android:text="@string/main_title"
             android:textAlignment="center"
-            android:textAllCaps="false"
             android:textColor="@color/yellow"
             android:textSize="60sp"
-            android:textStyle="bold|italic" />
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/mainNotify"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="20sp"
-            android:paddingBottom="20sp"
+            android:fontFamily="monospace"
+            android:padding="20sp"
             android:text="@string/main_label"
-            android:textAlignment="center"
+            android:textAlignment="textStart"
             android:textColor="@color/yellow"
             android:textSize="20sp" />
+    </LinearLayout>
 
-        <Switch
-            android:id="@+id/broadcastSwitch"
+    <LinearLayout
+        android:id="@+id/mainLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/dark_blue"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/titleLayout">
+
+        <LinearLayout
+            android:id="@+id/switchLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="toggleBroadcast"
-            android:text="@string/broadcast_off"
-            android:textAlignment="center"
-            android:textColor="@color/yellow"
-            android:textSize="24sp" />
+            android:orientation="horizontal">
 
-        <EditText
-            android:id="@+id/codeInput"
+            <Switch
+                android:id="@+id/broadcastSwitch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:checked="false"
+                android:fontFamily="monospace"
+                android:onClick="toggleBroadcast"
+                android:padding="20sp"
+                android:text="@string/broadcast_off"
+                android:textAlignment="textStart"
+                android:textColor="@color/yellow"
+                android:textSize="20sp"
+                android:thumbTint="@color/yellow"
+                android:trackTint="@color/yellow" />
+
+            <Button
+                android:id="@+id/switchInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/light_blue"
+                android:fontFamily="monospace"
+                android:onClick="showSwitchInfo"
+                android:text="@string/info_mark"
+                android:textColor="@color/yellow"
+                android:textSize="20sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/codeLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/code_hint"
-            android:inputType="numberPassword"
-            android:maxLength="6"
-            android:textAlignment="center"
-            android:textColor="@color/yellow"
-            android:textColorHint="@color/yellow"
-            android:textSize="34sp" />
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/codeInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="monospace"
+                android:hint="@string/code_hint"
+                android:inputType="numberPassword"
+                android:maxLength="6"
+                android:padding="20sp"
+                android:textAlignment="textStart"
+                android:textColor="@color/yellow"
+                android:textColorHint="@color/yellow"
+                android:textSize="20sp" />
+
+            <Button
+                android:id="@+id/codeInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/light_blue"
+                android:fontFamily="monospace"
+                android:onClick="showCodeInfo"
+                android:text="@string/info_mark"
+                android:textColor="@color/yellow"
+                android:textSize="20sp" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/discoverButton"
-            android:layout_width="300sp"
-            android:layout_height="200sp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:background="@color/light_blue"
+            android:fontFamily="monospace"
             android:onClick="discover"
+            android:padding="20sp"
             android:text="@string/discover_button"
             android:textAllCaps="false"
             android:textColor="@color/yellow"
-            android:textSize="34sp"
-            tools:ignore="TextContrastCheck" />
+            android:textSize="34sp" />
 
         <Button
             android:id="@+id/cancelButton"
-            android:layout_width="300sp"
-            android:layout_height="200sp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:background="@color/light_blue"
+            android:fontFamily="monospace"
             android:onClick="cancelDiscover"
+            android:padding="10sp"
             android:text="@string/cancel_button"
             android:textAllCaps="false"
             android:textColor="@color/yellow"
