@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
     private WifiReceiver receiver;
     private IntentFilter intentFilter;
-    private ActivityResultLauncher<String> permissionLauncher;
+    private ActivityResultLauncher<String[]> permissionLauncher;
     private SharedPreferences.Editor editor;
     private boolean userAgreed;
     private boolean useBroadcast = false;
@@ -109,36 +109,34 @@ public class MainActivity extends AppCompatActivity {
 
     //sets up the permission launcher to display messages based on the users response to the permissions request
     private void setupLauncher() {
-        permissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
-            @Override
-            public void onActivityResult(Boolean result) {
-                TextView textView = findViewById(R.id.mainNotify);
-                if (result) {
-                    textView.setText(getString(R.string.notify_location_allowed));
-                }
-                else {
-                    textView.setText(getString(R.string.notify_location_needed));
-                }
+        TextView textView = findViewById(R.id.mainNotify);
+        permissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+            Boolean fineLocationGranted = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
+            //Boolean coarseLocationGranted = result.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION,false);
+            if (fineLocationGranted != null && fineLocationGranted) {
+                textView.setText(getString(R.string.notify_location_allowed));
             }
+            else {
+                textView.setText(getString(R.string.notify_location_needed));
+            }
+
+
         });
     }
 
     private void setupSwitch() {
         Switch broadcastSwitch = findViewById(R.id.broadcastSwitch);
         LinearLayout codeLayout = findViewById(R.id.codeLayout);
-        broadcastSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if (broadcastSwitch.isChecked()) {
-                    broadcastSwitch.setText(R.string.broadcast_on);
-                    codeLayout.setVisibility(View.INVISIBLE);
-                    useBroadcast = true;
-                }
-                else {
-                    broadcastSwitch.setText(R.string.broadcast_off);
-                    codeLayout.setVisibility(View.VISIBLE);
-                    useBroadcast = false;
-                }
+        broadcastSwitch.setOnCheckedChangeListener((compoundButton, b) -> {
+            if (broadcastSwitch.isChecked()) {
+                broadcastSwitch.setText(R.string.broadcast_on);
+                codeLayout.setVisibility(View.INVISIBLE);
+                useBroadcast = true;
+            }
+            else {
+                broadcastSwitch.setText(R.string.broadcast_off);
+                codeLayout.setVisibility(View.VISIBLE);
+                useBroadcast = false;
             }
         });
     }
@@ -175,13 +173,10 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.user_agree_title);
         builder.setMessage(R.string.user_agree_content);
-        builder.setPositiveButton(R.string.user_agree_accept, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                userAgreed = true;
-                editor.putBoolean(USER_AGREED, true);
-                editor.apply();
-            }
+        builder.setPositiveButton(R.string.user_agree_accept, (dialogInterface, i) -> {
+            userAgreed = true;
+            editor.putBoolean(USER_AGREED, true);
+            editor.apply();
         });
         builder.setNegativeButton(R.string.user_agree_decline, null);
         builder.show();
@@ -222,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
                 startLooking();
             }
             else {
-                permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
+                permissionLauncher.launch(new String[] {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION});
             }
         }
         else {
