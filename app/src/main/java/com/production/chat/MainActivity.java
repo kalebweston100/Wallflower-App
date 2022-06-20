@@ -12,6 +12,7 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Switch;
@@ -53,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
         setupFromAction(getIntent().getAction());
         //initializes the permission launcher if it is necessary
         setupLauncher();
+        //setup on checked changed listener for broadcast switch
+        setupSwitch();
     }
 
     @Override
@@ -120,19 +123,24 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void toggleBroadcast(View view) {
+    private void setupSwitch() {
         Switch broadcastSwitch = findViewById(R.id.broadcastSwitch);
         LinearLayout codeLayout = findViewById(R.id.codeLayout);
-        if (broadcastSwitch.isChecked()) {
-            broadcastSwitch.setText(R.string.broadcast_on);
-            codeLayout.setVisibility(View.INVISIBLE);
-            useBroadcast = true;
-        }
-        else {
-            broadcastSwitch.setText(R.string.broadcast_off);
-            codeLayout.setVisibility(View.VISIBLE);
-            useBroadcast = false;
-        }
+        broadcastSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (broadcastSwitch.isChecked()) {
+                    broadcastSwitch.setText(R.string.broadcast_on);
+                    codeLayout.setVisibility(View.INVISIBLE);
+                    useBroadcast = true;
+                }
+                else {
+                    broadcastSwitch.setText(R.string.broadcast_off);
+                    codeLayout.setVisibility(View.VISIBLE);
+                    useBroadcast = false;
+                }
+            }
+        });
     }
 
     //method to stop the service
