@@ -123,7 +123,7 @@ public class ConnectService extends Service {
         //set so the main activity knows the show the cancel button
         notificationIntent.setAction(SHOW_CANCEL);
         //flag cancel current also stops activities from stacking up
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_CANCEL_CURRENT);
         //get package name is the id of the notification channel
         Notification.Builder notificationBuilder = new Notification.Builder(this, getPackageName());
         //pending intent launches main activity on press
@@ -144,8 +144,7 @@ public class ConnectService extends Service {
         notificationIntent.putExtra(OWNER, owner);
         notificationIntent.putExtra(IP_ADDRESS, ipAddress);
         //update current so the intent extras are added
-        //PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         //package name is notification channel
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, getPackageName());
         notificationBuilder.setContentIntent(pendingIntent);
