@@ -1,9 +1,6 @@
 package com.production.chat;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.content.BroadcastReceiver;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -12,20 +9,18 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.ToggleButton;
-
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
+
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences.Editor editor;
     private boolean userAgreed;
     private boolean useBroadcast = false;
+    private AdView adView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +52,9 @@ public class MainActivity extends AppCompatActivity {
         setupLauncher();
         //setup on checked changed listener for broadcast switch
         setupSwitch();
+
+        adView = findViewById(R.id.adView);
+        adView.loadAd(new AdRequest.Builder().build());
     }
 
     @Override
@@ -69,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         registerReceiver(receiver, intentFilter);
+        adView.resume();
     }
 
     //pause receiver and ads
@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         unregisterReceiver(receiver);
+        adView.pause();
     }
 
     @Override
@@ -83,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         Intent service = new Intent(this, ConnectService.class);
         stopService(service);
+        adView.destroy();
     }
 
     private void setupReceiver() {
@@ -111,9 +113,17 @@ public class MainActivity extends AppCompatActivity {
     private void setupLauncher() {
         TextView textView = findViewById(R.id.mainNotify);
         permissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+
+            Boolean notificationsGranted = true;
+            Boolean nearbyDevicesGranted = true;
             Boolean fineLocationGranted = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
-            //Boolean coarseLocationGranted = result.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION,false);
-            if (fineLocationGranted != null && fineLocationGranted) {
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                notificationsGranted = result.getOrDefault(Manifest.permission.POST_NOTIFICATIONS, false);
+                nearbyDevicesGranted = result.getOrDefault(Manifest.permission.NEARBY_WIFI_DEVICES, false);
+            }
+
+            if (Boolean.TRUE.equals(fineLocationGranted) && Boolean.TRUE.equals(notificationsGranted) && Boolean.TRUE.equals(nearbyDevicesGranted)) {
                 textView.setText(getString(R.string.notify_location_allowed));
             }
             else {
@@ -213,11 +223,21 @@ public class MainActivity extends AppCompatActivity {
     public void discover(View view) {
 
         if (userAgreed) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                startLooking();
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.NEARBY_WIFI_DEVICES) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                    startLooking();
+                }
+                else {
+                    permissionLauncher.launch(new String[] {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.NEARBY_WIFI_DEVICES});
+                }
             }
             else {
-                permissionLauncher.launch(new String[] {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION});
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    startLooking();
+                }
+                else {
+                    permissionLauncher.launch(new String[] {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION});
+                }
             }
         }
         else {

@@ -14,7 +14,7 @@
     <string name="notify_chat_end">The other user ended the connection</string>
     <string name="notify_end_chat">You ended the connection</string>
     <string name="notify_location_allowed">You\'re all ready to start using the app</string>
-    <string name="notify_location_needed">Precise location permissions are necessary for the app to connect you with other users</string>
+    <string name="notify_location_needed">Permissions are necessary for the app to connect you with other users</string>
     <string name="notify_waiting_peer">Waiting for the other user</string>
     <string name="peer_notification">You\'re connected to another user. Touch this notification to start messaging</string>
     <string name="service_notification">Looking for another user to connect with</string>

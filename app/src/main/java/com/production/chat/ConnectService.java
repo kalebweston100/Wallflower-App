@@ -8,9 +8,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.net.wifi.p2p.WifiP2pConfig;
-import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pUpnpServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pUpnpServiceRequest;
@@ -79,14 +77,13 @@ public class ConnectService extends Service {
         String uuid = "uuid:" + UUID.nameUUIDFromBytes(serviceName.getBytes()).toString();
         serviceRequest = WifiP2pUpnpServiceRequest.newInstance(uuid);
         manager.addServiceRequest(channel, serviceRequest, null);
-        manager.setUpnpServiceResponseListener(channel, new WifiP2pManager.UpnpServiceResponseListener() {
-            @Override
-            public void onUpnpServiceAvailable(List<String> list, WifiP2pDevice wifiP2pDevice) throws SecurityException {
-                String deviceAddress = wifiP2pDevice.deviceAddress;
-                WifiP2pConfig config = new WifiP2pConfig();
-                config.deviceAddress = deviceAddress;
-                manager.connect(channel, config, null);
-            }
+
+        manager.setUpnpServiceResponseListener(channel, (list, wifiP2pDevice) -> {
+
+            String deviceAddress = wifiP2pDevice.deviceAddress;
+            WifiP2pConfig config = new WifiP2pConfig();
+            config.deviceAddress = deviceAddress;
+            manager.connect(channel, config, null);
         });
         manager.discoverServices(channel, null);
     }
@@ -113,7 +110,7 @@ public class ConnectService extends Service {
         addServiceRequest(secretCode);
         createServiceInfo(secretCode);
         serviceNotification();
-        return START_STICKY;
+        return START_REDELIVER_INTENT;
     }
 
     //sends the foreground service notification on service start
@@ -163,8 +160,10 @@ public class ConnectService extends Service {
         //cancels any invitations etc to prevent issues in future connection attempts
         manager.cancelConnect(channel, null);
         //clear service requests and info because they're added every time the service is started
-        manager.removeServiceRequest(channel, serviceRequest, null);
-        manager.removeLocalService(channel, serviceInfo, null);
+        manager.clearServiceRequests(channel, null);
+        manager.clearLocalServices(channel, null);
+        //manager.removeServiceRequest(channel, serviceRequest, null);
+        //manager.removeLocalService(channel, serviceInfo, null);
         //remove the current group to send the peer back to the main activity
         manager.removeGroup(channel, null);
         //unregister receiver and delete notification channel after manager actions to give time to complete in framework
